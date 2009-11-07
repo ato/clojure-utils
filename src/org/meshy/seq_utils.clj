@@ -3,9 +3,9 @@
 
 (defn map-reduce-by
   "Returns a hash map where elements of coll are mapped by map-fn
-   and then reduced by reduce-fn.  The map is keyed by the result 
-   of group-fn on the original element.  If specified, val is the 
-   initial value of the reduce operation."
+  and then reduced by reduce-fn.  The map is keyed by the result 
+  of group-fn on the original element.  If specified, val is the 
+  initial value of the reduce operation."
   ([group-fn map-fn reduce-fn coll]     
      (reduce 
       (fn [m x]
@@ -25,7 +25,7 @@
 
 (defn reduce-by
   "Like reduce but returns a map keyed by the result of group-fn on
-   each element of coll."
+  each element of coll."
   ([group-fn reduce-fn coll] 
      (map-reduce-by group-fn identity reduce-fn coll))
   ([group-fn reduce-fn val coll]
@@ -40,7 +40,7 @@
 
 (defn freq-by
   "Applies grouper to each item in coll and returns a map from the distinct
-   results to the number of times they occur."
+  results to the number of times they occur."
   [grouper coll]
   (map-reduce-by grouper (constantly 1) + coll))
 
@@ -66,7 +66,7 @@
 
 (defn stats-by
   "Calculates a map from elements of coll grouped by group-fn 
-   to [frequency mean standard-deviation]."
+  to [frequency mean standard-deviation]."
   ([group-fn map-fn coll] 
      (->> coll
           (map-reduce-by group-fn
@@ -76,6 +76,19 @@
           (fmap (fn [[n sum sum-sq]]
                   [n (quot sum n) (Math/sqrt (- (* sum sum) 
                                                 (quot sum-sq n)))])))))
+
+
+(defn partition-when
+  "Partitions coll starting a new sequence whenever pred is true.
+  Returns a lazy sequence of lazy sequences.
+
+  Example: (partition-when even? [2 4 3 5 7 8 10])
+            => ((2) (4 3 5 7) (8) (10))"
+  [pred coll]
+  (lazy-seq
+    (when-let [[x & xs] (seq coll)]
+      (let [[xs ys] (split-with (complement pred) xs)]
+        (cons (cons x xs) (partition-when pred ys))))))
 
 (comment
   ;;
